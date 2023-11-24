@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+
+# Enable extended globbing
+shopt -s extglob
+
 SOURCE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 #echo $SOURCE;
 while true; do
@@ -43,145 +47,11 @@ if [ -f "/sys/bus/iio/devices/iio:device0/in_illuminance_raw" ];
 		exit
 fi
 
-if [ -f "/sys/class/backlight/gmux_backlight/brightness" ];
+if compgen -G "/sys/class/backlight/@(intel_backlight|amdgpu_bl0|radeon_bl0|gmux_backlight)/brightness" > /dev/null;
 	then
 
 		# Letar efter existerande lightfix och erbjuder avinstallation eller uppdatering
-		if [ -f "/usr/bin/ambientLightFix_gmux" ];
-			then
-				while true; do
-					read -p "
-		-------| Found existing Ambient Light Fix! |-------
-		Do you want to Uninstall [1] Ambient Light Fix...
-		... or do you want to Update [2] to a newer version?
-		---------------------------------------------------
-					" gmux
-					case $gmux in
-						[1]* ) echo;
-						systemctl stop ambientLightFix_gmux.service;
-						sudo sh -c "rm /usr/bin/ambientLightFix_gmux";
-						systemctl disable ambientLightFix_gmux.service;
-						sudo sh -c "rm /etc/systemd/system/ambientLightFix_gmux.service";
-						echo "
-		---------------| Uninstalled! |----------------";
-						echo; break;;
-						[2]* ) echo;
-						systemctl stop ambientLightFix_gmux.service;
-						sudo sh -c "rm /usr/bin/ambientLightFix_gmux";
-						sudo sh -c "cp '$SOURCE'/ambientLightFix_gmux /usr/bin/ambientLightFix_gmux";
-						systemctl start ambientLightFix_gmux.service;
-						echo "
-		-----------------| Updated! |------------------";
-						echo; break;;
-						* ) echo; echo "
-		-------------
-		! type 1 or 2
-		-------------"; echo;;
-					esac
-				done
-			else
-
-				echo "
-		------------------
-		*** found gmux ***
-		------------------
-				";
-
-				echo "
-		-> Will test changing brightness before installation...
-				"; echo; sleep 1
-				echo "
-		-> Current brightness: "
-				cat /sys/class/backlight/gmux_backlight/brightness; sleep 1;
-				echo "
-		-> Setting brightness to 50, then step up to 500...
-				";
-				sleep 3;
-				sudo sh -c "echo 50 > /sys/class/backlight/gmux_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 100 > /sys/class/backlight/gmux_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 150 > /sys/class/backlight/gmux_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 200 > /sys/class/backlight/gmux_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 250 > /sys/class/backlight/gmux_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 300 > /sys/class/backlight/gmux_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 350 > /sys/class/backlight/gmux_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 400 > /sys/class/backlight/gmux_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 450 > /sys/class/backlight/gmux_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 500 > /sys/class/backlight/gmux_backlight/brightness";
-				echo "
-				->Current brightness: ";
-				cat /sys/class/backlight/gmux_backlight/brightness; sleep 1; echo "
-		---------------------------------
-		... Everything good so far!
-		Let's start setting things up :-)
-		---------------------------------
-				";
-				echo; echo;
-				echo "
-		---------------------
-		*** Copying files ***
-		---------------------
-				";
-				sudo sh -c "cp '$SOURCE'/ambientLightFix_gmux /usr/bin/ambientLightFix_gmux";
-				sudo sh -c "cp '$SOURCE'/ambientLightFix_gmux.service /etc/systemd/system/ambientLightFix_gmux.service";
-				echo;
-				sleep 1;
-				echo "
-		------------------
-		*** Setting up ***
-		------------------
-				";
-				systemctl enable ambientLightFix_gmux.service;
-				echo;
-				echo "
-		------------
-		*** Done ***
-		------------
-				";
-				echo;
-				while true; do
-					read -p "
-		-----------------| All set! |---------------
-		You wanna start Ambient Light Fix now? (y/n)
-		--------------------------------------------
-					" gmux_start
-					case $gmux_start in
-						[Yy]* ) echo; echo "
-		--------------| Congratulations! |---------------
-		You're all done! You can close this terminal now.
-		-------------------------------------------------
-						"; systemctl start ambientLightFix_gmux.service; break;;
-						[Nn]* ) echo; echo "
-		---------------------| OK |----------------------
-		Ambient Light Fix will start next time you reboot
-		-------------------------------------------------
-						"; echo; exit;;
-					esac
-				done
-				echo "Done :-)";
-			fi
-
-
-	else echo "
-		-------------------------------------------
-		No hybrid graphics here - checking Radeon...
-		-------------------------------------------
-		"; echo; sleep 1
-fi
-
-if [ -f "/sys/class/backlight/radeon_bl0/brightness" ];
-	then
-
-		# Letar efter existerande lightfix och erbjuder avinstallation eller uppdatering
-		if [ -f "/usr/bin/ambientLightFix_radeon" ];
+		if compgen -G "/usr/bin/ambientLightFix*" > /dev/null;
 			then
 				while true; do
 					read -p "
@@ -192,18 +62,18 @@ if [ -f "/sys/class/backlight/radeon_bl0/brightness" ];
 					" radeon
 					case $radeon in
 						[1]* ) echo;
-						systemctl stop ambientLightFix_radeon.service;
-						sudo sh -c "rm /usr/bin/ambientLightFix_radeon";
-						systemctl disable ambientLightFix_radeon.service;
-						sudo sh -c "rm /etc/systemd/system/ambientLightFix_radeon.service";
+						systemctl stop ambientLightFix.service;
+						sudo sh -c "rm /usr/bin/ambientLightFix";
+						systemctl disable ambientLightFix.service;
+						sudo sh -c "rm /etc/systemd/system/ambientLightFix.service";
 						echo "
 		---------------| Uninstalled! |----------------";
 						echo; break;;
 						[2]* ) echo;
-						systemctl stop ambientLightFix_radeon.service;
-						sudo sh -c "rm /usr/bin/ambientLightFix_radeon";
-						sudo sh -c "cp '$SOURCE'/ambientLightFix_radeon /usr/bin/ambientLightFix_radeon";
-						systemctl start ambientLightFix_radeon.service;
+						systemctl stop ambientLightFix.service;
+						sudo sh -c "rm /usr/bin/ambientLightFix";
+						sudo sh -c "cp '$SOURCE'/ambientLightFix /usr/bin/ambientLightFix";
+						systemctl start ambientLightFix.service;
 						echo "
 		-----------------| Updated! |------------------";
 						echo; break;;
@@ -216,43 +86,47 @@ if [ -f "/sys/class/backlight/radeon_bl0/brightness" ];
 			else
 
 				echo "
-		------------------
-		*** found radeon ***
-		------------------
+		--------------------------------
+		*** found brightness control ***
+		--------------------------------
 				";
-
+				echo "
+		-> Sensor Path: "
+				control=$(ls /sys/class/backlight/@(intel_backlight|amdgpu_bl0|radeon_bl0|gmux_backlight)/brightness)
+				echo $control
 				echo "
 		-> Will test changing brightness before installation...
 				"; echo; sleep 1
 				echo "
 		-> Current brightness: "
-				cat /sys/class/backlight/radeon_bl0/brightness; sleep 1;
+				cat $control; sleep 1;
 				echo "
 		-> Setting brightness to 50, then step up to 500...
 				";
 				sleep 3;
-				sudo sh -c "echo 50 > /sys/class/backlight/radeon_bl0/brightness";
+				
+				sudo bash -c "echo 50 > $control";
 				sleep 1;
-				sudo sh -c "echo 100 > /sys/class/backlight/radeon_bl0/brightness";
+				sudo bash -c "echo 100 > $control";
 				sleep 1;
-				sudo sh -c "echo 150 > /sys/class/backlight/radeon_bl0/brightness";
+				sudo bash -c "echo 150 > $control";
 				sleep 1;
-				sudo sh -c "echo 200 > /sys/class/backlight/radeon_bl0/brightness";
+				sudo bash -c "echo 200 > $control";
 				sleep 1;
-				sudo sh -c "echo 250 > /sys/class/backlight/radeon_bl0/brightness";
+				sudo bash -c "echo 250 > $control";
 				sleep 1;
-				sudo sh -c "echo 300 > /sys/class/backlight/radeon_bl0/brightness";
+				sudo bash -c "echo 300 > $control";
 				sleep 1;
-				sudo sh -c "echo 350 > /sys/class/backlight/radeon_bl0/brightness";
+				sudo bash -c "echo 350 > $control";
 				sleep 1;
-				sudo sh -c "echo 400 > /sys/class/backlight/radeon_bl0/brightness";
+				sudo bash -c "echo 400 > $control";
 				sleep 1;
-				sudo sh -c "echo 450 > /sys/class/backlight/radeon_bl0/brightness";
+				sudo bash -c "echo 450 > $control";
 				sleep 1;
-				sudo sh -c "echo 500 > /sys/class/backlight/radeon_bl0/brightness";
+				sudo bash -c "echo 500 > $control";
 				echo "
 				->Current brightness: ";
-				cat /sys/class/backlight/radeon_bl0/brightness; sleep 1; echo "
+				cat $control; sleep 1; echo "
 		---------------------------------
 		... Everything good so far!
 		Let's start setting things up :-)
@@ -264,8 +138,8 @@ if [ -f "/sys/class/backlight/radeon_bl0/brightness" ];
 		*** Copying files ***
 		---------------------
 				";
-				sudo sh -c "cp '$SOURCE'/ambientLightFix_radeon /usr/bin/ambientLightFix_radeon";
-				sudo sh -c "cp '$SOURCE'/ambientLightFix_radeon.service /etc/systemd/system/ambientLightFix_radeon.service";
+				sudo sh -c "cp '$SOURCE'/ambientLightFix /usr/bin/ambientLightFix";
+				sudo sh -c "cp '$SOURCE'/ambientLightFix.service /etc/systemd/system/ambientLightFix.service";
 				echo;
 				sleep 1;
 				echo "
@@ -273,7 +147,7 @@ if [ -f "/sys/class/backlight/radeon_bl0/brightness" ];
 		*** Setting up ***
 		------------------
 				";
-				systemctl enable ambientLightFix_radeon.service;
+				systemctl enable ambientLightFix.service;
 				echo;
 				echo "
 		------------
@@ -292,7 +166,7 @@ if [ -f "/sys/class/backlight/radeon_bl0/brightness" ];
 		--------------| Congratulations! |---------------
 		You're all done! You can close this terminal now.
 		-------------------------------------------------
-						"; systemctl start ambientLightFix_radeon.service; break;;
+						"; systemctl start ambientLightFix.service; break;;
 						[Nn]* ) echo; echo "
 		---------------------| OK |----------------------
 		Ambient Light Fix will start next time you reboot
@@ -301,139 +175,6 @@ if [ -f "/sys/class/backlight/radeon_bl0/brightness" ];
 					esac
 				done
 				echo "Done :-)";
-			fi
-
-
-	else echo "
-		-------------------------------------------
-		No Radeon graphics here - checking intel...
-		-------------------------------------------
-		"; echo; sleep 1
-fi
-
-if [ -f "/sys/class/backlight/intel_backlight/brightness" ];
-	then
-
-		# Letar efter existerande lightfix och erbjuder avinstallation eller uppdatering
-		if [ -f "/usr/bin/ambientLightFix_intel" ];
-			then
-				while true; do
-					read -p "
-		--------| Found existing Ambient Light Fix! |-------
-		Do you want to Uninstall [1] Ambient Light Fix...
-		... or do you want to Update [2] to a newer version?
-		----------------------------------------------------
-					" intel
-					case $intel in
-						[1]* ) echo;
-						systemctl stop ambientLightFix_intel.service;
-						sudo sh -c "rm /usr/bin/ambientLightFix_intel";
-						systemctl disable ambientLightFix_intel.service;
-						sudo sh -c "rm /etc/systemd/system/ambientLightFix_intel.service";
-						echo "
-		------------|	Uninstalled! |------------
-		"; echo; break;;
-						[2]* ) echo;
-						systemctl stop ambientLightFix_intel.service;
-						sudo sh -c "rm /usr/bin/ambientLightFix_intel";
-						sudo sh -c "cp '$SOURCE'/ambientLightFix_intel /usr/bin/ambientLightFix_intel";
-						systemctl start ambientLightFix_intel.service;
-						echo "
-		--------|	Updated! |--------
-		" echo; break;;
-						* ) echo "
-		-----------------
-		! type one or two
-		-----------------
-						"; echo;;
-					esac
-				done
-			else
-
-				echo "
-		-------------------
-		*** found intel ***
-		-------------------
-				"; echo "
-		-> Will test changing brightness before installation...
-				"; echo; sleep 1
-				echo "
-		-> Current brightness: "
-				cat /sys/class/backlight/intel_backlight/brightness; sleep 1;
-				echo "
-		-> Setting brightness to 50, then step up to 500...
-				";
-				sleep 3;
-				sudo sh -c "echo 50 > /sys/class/backlight/intel_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 100 > /sys/class/backlight/intel_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 150 > /sys/class/backlight/intel_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 200 > /sys/class/backlight/intel_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 250 > /sys/class/backlight/intel_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 300 > /sys/class/backlight/intel_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 350 > /sys/class/backlight/intel_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 400 > /sys/class/backlight/intel_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 450 > /sys/class/backlight/intel_backlight/brightness";
-				sleep 1;
-				sudo sh -c "echo 500 > /sys/class/backlight/intel_backlight/brightness";
-				echo "
-		-> Current brightness: ";
-				cat /sys/class/backlight/intel_backlight/brightness; sleep 1; echo "
-		---------------------------------
-		... Everything good so far.
-		Let's start setting things up :-)
-		---------------------------------
-				"; echo; echo;
-				echo "
-		---------------------
-		*** Copying files ***
-		---------------------
-				";
-				sudo sh -c "cp '$SOURCE'/ambientLightFix_intel /usr/bin/ambientLightFix_intel";
-				sudo sh -c "cp '$SOURCE'/ambientLightFix_intel.service /etc/systemd/system/ambientLightFix_intel.service";
-				echo;
-				sleep 1;
-				echo "
-		------------------
-		*** Setting up ***
-		------------------
-				";
-				systemctl enable ambientLightFix_intel.service;
-				echo;
-				echo "
-		------------
-		*** Done ***
-		------------
-				";
-				echo;
-				while true; do
-					read -p "
-		------------------| All set |---------------
-		You wanna start Ambient Light Fix now? (y/n)
-		--------------------------------------------
-					" intel_start
-					case $intel_start in
-						[Yy]* ) echo; echo "
-		----------------| Congratulations |--------------
-		You're all done! You can close this terminal now.
-		-------------------------------------------------
-						"; systemctl start ambientLightFix_intel.service; break;;
-						[Nn]* ) echo; echo "
-		----------------------| OK |---------------------
-		Ambient Light Fix will start next time you reboot
-		-------------------------------------------------
-						"; echo; exit;;
-					esac
-				done
-				echo "Done :-)";
-
 			fi
 
 

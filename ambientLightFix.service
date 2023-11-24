@@ -2,8 +2,8 @@
 Description=Automatically adjust screen-brightness
 
 [Service]
-Type=oneshot
-ExecStart=/usr/bin/ambientLightFix_intel
+Type=simple
+ExecStart=/usr/bin/ambientLightFix
 
 [Install]
 WantedBy=multi-user.target
