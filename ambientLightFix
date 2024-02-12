@@ -9,6 +9,7 @@ treshold=$((max/4))
 panOut=$((sensitivity/4))
 min=$((max/10))
 delay=2
+update_time=0.1
 updated=1
 lastSet=0
 justeringUpp=0
@@ -57,7 +58,7 @@ do
         then
                 updated=1
                 target=$((target+(sensitivity/2)+justeringUpp-justeringNer))
-                echo "Steg: sensorGreater"
+                #echo "Steg: sensorGreater"
         fi
 
 
@@ -65,7 +66,7 @@ do
         then
                 updated=1
                 target=$((target-(sensitivity/2)+justeringUpp-justeringNer))
-                echo "Steg: sensorLess"
+                #echo "Steg: sensorLess"
         fi
 
 
@@ -86,7 +87,9 @@ do
                 echo $target > /sys/class/backlight/@(intel_backlight|amdgpu_bl0|radeon_bl0|gmux_backlight)/brightness
                 lastSet=$target
                 #echo "lastSet: " $lastSet
+                sleep $update_time
+        else
+                sleep $delay
         fi
-        sleep $delay
         
 done
