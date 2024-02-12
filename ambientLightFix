@@ -3,7 +3,7 @@
 # Enable extended globbing
 shopt -s extglob
 
-max=$(cat /sys/class/backlight/@(intel_backlight|@(intel_backlight|amdgpu_bl0|radeon_bl0|gmux_backlight)|radeon_bl0|gmux_backlight)/max_brightness)
+max=$(cat /sys/class/backlight/@(intel_backlight|amdgpu_bl0|radeon_bl0|gmux_backlight)/max_brightness)
 sensitivity=$((max/90))
 treshold=$((max/4))
 panOut=$((sensitivity/4))
